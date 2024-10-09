@@ -10,7 +10,7 @@ export default function Home() {
     const [text, setText] = useState<string>("");
     const [error, setError] = useState<string | null>(null);
 
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000';
 
 
     useEffect(() => {

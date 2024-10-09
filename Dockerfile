@@ -13,10 +13,10 @@ COPY backend .
 
 # Set environment variables for Flask
 ENV FLASK_APP=app.py
-ENV FLASK_RUN_HOST=0.0.0.0
+ENV FLASK_RUN_HOST=127.0.0.1
 
-# Expose the port for the Flask app
-EXPOSE 5000
+# Do not expose the Flask backend publicly
+# No EXPOSE command here to avoid making it accessible externally
 
 # Stage 2: Build the Next.js App
 FROM node:18-alpine AS builder
@@ -48,5 +48,5 @@ COPY --from=builder /app/frontend/package.json ./package.json
 # Expose the port for the Next.js app
 EXPOSE 3000
 
-# Command to run the Flask app and Next.js app concurrently
-CMD ["sh", "-c", "flask run --host=0.0.0.0 & npm run start"]
+# Command to run the Flask app and Next.js app
+CMD ["sh", "-c", "flask run --host=127.0.0.1 & npm run start"]
