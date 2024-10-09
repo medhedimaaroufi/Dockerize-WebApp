@@ -1,22 +1,52 @@
-# Use a lightweight base image
-FROM docker:20.10.7
+# Stage 1: Build the Flask Backend
+FROM python:3.10-slim AS backend
 
-# Set the working directory
-WORKDIR /app
+# Set working directory
+WORKDIR /app/backend
 
-# Copy the docker-compose file
-COPY docker-compose.yml .
+# Copy requirements and install dependencies
+COPY backend/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the frontend and backend directories
-COPY ./frontend ./frontend
-COPY ./backend ./backend
+# Copy the rest of the backend code
+COPY backend .
 
-# Install Docker Compose
-RUN apk add --no-cache python3 py3-pip && \
-    pip3 install docker-compose
+# Set environment variables for Flask
+ENV FLASK_APP=app.py
+ENV FLASK_RUN_HOST=0.0.0.0
 
-# Expose any ports your services need (update based on your application configuration)
-EXPOSE 3000 5000
+# Expose the port for the Flask app
+EXPOSE 5000
 
-# Run docker-compose up
-CMD ["docker-compose", "up"]
+# Stage 2: Build the Next.js App
+FROM node:18-alpine AS builder
+
+# Set working directory
+WORKDIR /app/frontend
+
+# Copy package.json and package-lock.json, then install dependencies
+COPY frontend/package*.json ./
+RUN npm install
+
+# Copy the rest of the frontend code
+COPY frontend .
+
+# Build the Next.js application
+RUN npm run build
+
+# Stage 3: Serve the built Next.js App
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app/frontend
+
+# Copy built files from the builder stage
+COPY --from=builder /app/frontend/.next ./.next
+COPY --from=builder /app/frontend/node_modules ./node_modules
+COPY --from=builder /app/frontend/package.json ./package.json
+
+# Expose the port for the Next.js app
+EXPOSE 3000
+
+# Command to run the Flask app and Next.js app concurrently
+CMD ["sh", "-c", "flask run --host=0.0.0.0 & npm run start"]
