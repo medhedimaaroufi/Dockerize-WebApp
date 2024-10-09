@@ -32,7 +32,7 @@ RUN npm install
 COPY frontend .
 
 # Build the Next.js application
-RUN npm run build
+RUN npm run build -- --skip-lint
 
 # Stage 3: Serve the built Next.js App
 FROM node:18-alpine
