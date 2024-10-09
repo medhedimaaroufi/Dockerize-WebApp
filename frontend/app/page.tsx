@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { fetchFromServer } from "./action";
 
 interface DataResponse {
     message: string; // Adjust this based on your backend response structure
@@ -10,19 +11,16 @@ export default function Home() {
     const [text, setText] = useState<string>("");
     const [error, setError] = useState<string | null>(null);
 
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000';
-
-
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await fetch(apiBaseUrl); // Call the Next.js proxy API route
+                const response = await fetchFromServer(); // Use await here
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const data: DataResponse = await response.json();
                 setText(data.message); // Assuming the backend responds with a 'message'
-            } catch (error) {
+            } catch (error: any) {
                 console.error("Error fetching data:", error);
                 setError("Failed to fetch data");
             }
